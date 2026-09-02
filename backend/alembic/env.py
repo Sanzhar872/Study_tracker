@@ -8,7 +8,9 @@ from app.database import Base
 from app.models import Subject, Topic, Entry  # noqa: F401
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# ConfigParser treats "%" as interpolation syntax, so a percent-encoded
+# password in the URL (e.g. from special characters) must be escaped as "%%".
+config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
