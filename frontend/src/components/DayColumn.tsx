@@ -1,5 +1,6 @@
 import type { EntryWithContext } from "../types";
 import { formatDayLabel } from "../utils/dates";
+import { formatDuration } from "../utils/duration";
 import EntryCard from "./EntryCard";
 
 interface Props {
@@ -30,7 +31,7 @@ export default function DayColumn({ date, isToday, entries, onAddClick, onEntryC
       </div>
       {entries.length > 0 && (
         <div className="day-total">
-          Итого: <strong>{total.toFixed(1)} ч</strong>
+          Итого: <strong>{formatDuration(total)}</strong>
         </div>
       )}
     </div>

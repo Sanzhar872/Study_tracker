@@ -146,7 +146,6 @@ export default function AddEntryModal({ state, subjects, topics, onClose, onSave
                   placeholder="0"
                   value={hoursPart}
                   onChange={(e) => setHoursPart(e.target.value)}
-                  required
                 />
                 <span className="time-input-unit">ч</span>
               </div>

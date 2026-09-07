@@ -518,7 +518,8 @@ select:focus {
 }
 
 .entry-card--sm .entry-card-subject {
-  display: none;
+  font-size: 10px;
+  margin-bottom: 2px;
 }
 
 .entry-card--sm .entry-card-hours {

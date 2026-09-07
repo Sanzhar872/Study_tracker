@@ -1,5 +1,6 @@
 import type { EntryWithContext } from "../types";
 import { masteryTier } from "../utils/mastery";
+import { formatDuration } from "../utils/duration";
 
 interface Props {
   entry: EntryWithContext;
@@ -23,7 +24,7 @@ export default function EntryCard({ entry, onClick }: Props) {
     >
       <div className="entry-card-topic">{entry.topic.name}</div>
       <div className="entry-card-subject">{entry.topic.subject.name}</div>
-      <div className="entry-card-hours">{entry.hours} ч</div>
+      <div className="entry-card-hours">{formatDuration(entry.hours)}</div>
       <div className="entry-card-mastery" title={`${tier.label}: ${entry.topic.mastery}%`}>
         <div className="entry-card-mastery-track">
           <div
