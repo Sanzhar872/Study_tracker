@@ -5,6 +5,7 @@ import { addDays, startOfWeek, toISODate, formatWeekRange } from "../utils/dates
 import WeekView from "../components/WeekView";
 import AddEntryModal from "../components/AddEntryModal";
 import HoursChart from "../components/HoursChart";
+import StudyTimer from "../components/StudyTimer";
 
 export default function WeekPage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
@@ -46,6 +47,8 @@ export default function WeekPage() {
 
   return (
     <div>
+      <StudyTimer subjects={subjects} topics={topics} onSaved={handleSaved} />
+
       <div className="week-header">
         <h2>{formatWeekRange(weekStart)}</h2>
         <div className="week-nav-btns">

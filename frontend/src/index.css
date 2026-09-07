@@ -359,6 +359,75 @@ select:focus {
   transform: scale(0.94);
 }
 
+.timer-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  animation: fadeSlideUp 0.3s ease both;
+}
+
+.timer-selects {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.timer-selects select {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.timer-start-btn {
+  flex-shrink: 0;
+}
+
+.timer-info {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.timer-label {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timer-clock {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.timer-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.timer-error {
+  margin: 0;
+  width: 100%;
+}
+
 .week-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -1143,6 +1212,31 @@ select:focus {
   .week-header {
     flex-wrap: wrap;
     gap: 10px;
+  }
+
+  .timer-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timer-selects {
+    min-width: 0;
+  }
+
+  .timer-start-btn {
+    width: 100%;
+  }
+
+  .timer-info {
+    justify-content: space-between;
+  }
+
+  .timer-actions {
+    width: 100%;
+  }
+
+  .timer-actions .btn {
+    flex: 1;
   }
 
   .week-grid {
