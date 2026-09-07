@@ -359,6 +359,11 @@ select:focus {
   transform: scale(0.94);
 }
 
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 .timer-card {
   display: flex;
   align-items: center;
@@ -371,6 +376,38 @@ select:focus {
   padding: 14px 16px;
   margin-bottom: 20px;
   animation: fadeSlideUp 0.3s ease both;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.timer-card.is-running {
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 14%, var(--surface));
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.timer-card.is-paused {
+  border: 2px solid var(--text-muted);
+  background: color-mix(in srgb, var(--surface-muted) 40%, var(--surface));
+  box-shadow: none;
+}
+
+.timer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex-shrink: 0;
+  animation: timerPulse 1.4s ease-in-out infinite;
+}
+
+.timer-dot.is-paused {
+  background: var(--text-muted);
+  animation: none;
+}
+
+.timer-paused-badge {
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .timer-selects {
@@ -395,7 +432,7 @@ select:focus {
 
 .timer-info {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 14px;
   flex-wrap: wrap;
   flex: 1;
@@ -411,10 +448,10 @@ select:focus {
 }
 
 .timer-clock {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: var(--accent);
+  color: var(--text);
 }
 
 .timer-actions {
@@ -1233,10 +1270,11 @@ select:focus {
 
   .timer-actions {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .timer-actions .btn {
-    flex: 1;
+    flex: 1 1 90px;
   }
 
   .week-grid {
