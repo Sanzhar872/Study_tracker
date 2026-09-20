@@ -7,24 +7,25 @@ import {
   bucketRange,
   formatHours,
   getBuckets,
-  niceCeil,
+  getYScale,
   GRANULARITY_LABELS,
   type Granularity,
 } from "../utils/chartBuckets";
 
 const MAX_SUBJECTS = 5;
 const TOTAL_COLOR = "#FF9500";
-const VIEW_W = 800;
-const VIEW_H = 280;
+const MIN_WIDTH = 280;
+const DEFAULT_WIDTH = 800;
+const COMPACT_BREAKPOINT = 480;
+const HEIGHT = 280;
+const HEIGHT_COMPACT = 220;
 const PAD_L = 34;
 const PAD_R = 12;
 const PAD_T = 16;
 const PAD_B = 30;
-const PLOT_W = VIEW_W - PAD_L - PAD_R;
-const PLOT_H = VIEW_H - PAD_T - PAD_B;
 const BAR_RADIUS = 5;
 const BAR_FILL_RATIO = 0.58;
-const HOUR_TICKS = [1, 2, 3, 4, 5, 6, 7];
+const BAR_MAX_W = 56;
 
 type ViewMode = "total" | "subjects";
 
@@ -54,7 +55,26 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
   const [entries, setEntries] = useState<EntryWithContext[]>([]);
   const [loading, setLoading] = useState(false);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
+  const hasSubjects = subjects.length > 0;
+
+  // Рисуем в реальных пикселях, а не в растягиваемом viewBox: иначе текст и точки
+  // сплющиваются на узких экранах и растягиваются на широких.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => setWidth(Math.max(Math.round(el.clientWidth), MIN_WIDTH));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasSubjects]);
+
+  const height = width < COMPACT_BREAKPOINT ? HEIGHT_COMPACT : HEIGHT;
+  const plotW = width - PAD_L - PAD_R;
+  const plotH = height - PAD_T - PAD_B;
 
   useEffect(() => {
     if (!initialized.current && subjects.length > 0) {
@@ -88,7 +108,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
       ? totalSeries.reduce((a, b) => a + b, 0)
       : selectedIds.reduce((sum, id) => sum + (subjectSeries[id]?.reduce((a, b) => a + b, 0) ?? 0), 0);
 
-  const maxValue = useMemo(() => {
+  const yScale = useMemo(() => {
     let max = 0;
     if (mode === "total") {
       for (const v of totalSeries) max = Math.max(max, v);
@@ -97,7 +117,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
         for (const v of subjectSeries[id] ?? []) max = Math.max(max, v);
       }
     }
-    return Math.max(niceCeil(max), HOUR_TICKS[HOUR_TICKS.length - 1]);
+    return getYScale(max);
   }, [mode, totalSeries, subjectSeries, selectedIds]);
 
   function toggleSubject(id: number) {
@@ -109,27 +129,17 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
   }
 
   function yForValue(v: number): number {
-    return PAD_T + PLOT_H - (v / maxValue) * PLOT_H;
+    return PAD_T + plotH - (v / yScale.max) * plotH;
   }
 
-  // Bar mode: bands span the full width, bars centered within each band.
-  const bandW = PLOT_W / buckets.length;
-  const barW = bandW * BAR_FILL_RATIO;
+  // Bars, line points, labels and hover zones all share the same bands.
+  const bandW = plotW / buckets.length;
+  const barW = Math.min(bandW * BAR_FILL_RATIO, BAR_MAX_W);
   const baseY = yForValue(0);
 
   function bandCenterX(i: number): number {
     return PAD_L + (i + 0.5) * bandW;
   }
-
-  // Line mode: points anchored edge-to-edge across the plot width.
-  function xForIndex(i: number): number {
-    if (buckets.length === 1) return PAD_L + PLOT_W / 2;
-    return PAD_L + (i / (buckets.length - 1)) * PLOT_W;
-  }
-
-  const labelX = mode === "total" ? bandCenterX : xForIndex;
-
-  const labelStep = buckets.length > 10 ? 2 : 1;
 
   const blockedBySelection = mode === "subjects" && selectedIds.length === 0;
 
@@ -194,7 +204,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
             </div>
           )}
 
-          <div className="chart-svg-wrap">
+          <div className="chart-svg-wrap" ref={wrapRef}>
             {blockedBySelection ? (
               <div className="chart-empty">Выбери хотя бы один предмет</div>
             ) : loading ? (
@@ -202,14 +212,14 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
             ) : grandTotal === 0 ? (
               <div className="chart-empty">Нет записей за этот период</div>
             ) : (
-              <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className="chart-svg" preserveAspectRatio="none">
-                {HOUR_TICKS.map((hour) => {
+              <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className="chart-svg">
+                {yScale.ticks.map((hour) => {
                   const y = yForValue(hour);
                   return (
                     <g key={hour}>
                       <line
                         x1={PAD_L}
-                        x2={VIEW_W - PAD_R}
+                        x2={width - PAD_R}
                         y1={y}
                         y2={y}
                         className="chart-gridline"
@@ -221,24 +231,22 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                   );
                 })}
 
-                {buckets.map((b, i) =>
-                  i % labelStep === 0 || i === buckets.length - 1 ? (
-                    <text
-                      key={b.key}
-                      x={labelX(i)}
-                      y={VIEW_H - PAD_B + 18}
-                      className={`chart-axis-label ${hoverIndex === i ? "is-active" : ""}`}
-                      textAnchor="middle"
-                    >
-                      {b.label}
-                    </text>
-                  ) : null
-                )}
+                {buckets.map((b, i) => (
+                  <text
+                    key={b.key}
+                    x={bandCenterX(i)}
+                    y={height - PAD_B + 18}
+                    className={`chart-axis-label ${hoverIndex === i ? "is-active" : ""}`}
+                    textAnchor="middle"
+                  >
+                    {b.label}
+                  </text>
+                ))}
 
                 {mode === "total" &&
                   buckets.map((b, i) => {
                     const value = totalSeries[i] ?? 0;
-                    const barX = PAD_L + i * bandW + (bandW - barW) / 2;
+                    const barX = bandCenterX(i) - barW / 2;
                     const topY = yForValue(value);
                     const clipId = `bar-clip-${granularity}-${i}`;
                     const groupClass = [
@@ -264,7 +272,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                           x={PAD_L + i * bandW}
                           y={PAD_T}
                           width={bandW}
-                          height={PLOT_H}
+                          height={plotH}
                           fill="transparent"
                           onMouseEnter={() => setHoverIndex(i)}
                           onMouseLeave={() => setHoverIndex(null)}
@@ -278,7 +286,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                     {visibleSubjects.map((s) => {
                       const values = subjectSeries[s.id] ?? [];
                       const d = values
-                        .map((v, i) => `${i === 0 ? "M" : "L"} ${xForIndex(i)},${yForValue(v)}`)
+                        .map((v, i) => `${i === 0 ? "M" : "L"} ${bandCenterX(i)},${yForValue(v)}`)
                         .join(" ");
                       return (
                         <g key={s.id}>
@@ -286,7 +294,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                           {values.map((v, i) => (
                             <circle
                               key={i}
-                              cx={xForIndex(i)}
+                              cx={bandCenterX(i)}
                               cy={yForValue(v)}
                               r={hoverIndex === i ? 5 : 3}
                               fill={s.color}
@@ -299,10 +307,10 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
 
                     {hoverIndex !== null && (
                       <line
-                        x1={xForIndex(hoverIndex)}
-                        x2={xForIndex(hoverIndex)}
+                        x1={bandCenterX(hoverIndex)}
+                        x2={bandCenterX(hoverIndex)}
                         y1={PAD_T}
-                        y2={VIEW_H - PAD_B}
+                        y2={height - PAD_B}
                         className="chart-crosshair"
                       />
                     )}
@@ -310,10 +318,10 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                     {buckets.map((_, i) => (
                       <rect
                         key={i}
-                        x={PAD_L + (i / buckets.length) * PLOT_W}
+                        x={PAD_L + i * bandW}
                         y={PAD_T}
-                        width={PLOT_W / buckets.length}
-                        height={PLOT_H}
+                        width={bandW}
+                        height={plotH}
                         fill="transparent"
                         onMouseEnter={() => setHoverIndex(i)}
                         onMouseLeave={() => setHoverIndex(null)}
@@ -328,7 +336,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
               <div
                 className="chart-tooltip"
                 style={{
-                  left: `${((hoverIndex + 0.5) / buckets.length) * 100}%`,
+                  left: bandCenterX(hoverIndex),
                 }}
               >
                 <div className="chart-tooltip-title">{buckets[hoverIndex].fullLabel}</div>

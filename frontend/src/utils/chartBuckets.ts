@@ -12,8 +12,8 @@ export interface Bucket {
 }
 
 export const BUCKET_COUNT: Record<Granularity, number> = {
-  day: 14,
-  week: 8,
+  day: 7,
+  week: 5,
   month: 6,
 };
 
@@ -115,16 +115,28 @@ export function aggregateTotal(entries: EntryWithContext[], buckets: Bucket[]): 
   return result;
 }
 
-export function niceCeil(value: number): number {
-  if (value <= 0) return 1;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
-  const normalized = value / magnitude;
-  let niceNorm: number;
-  if (normalized <= 1) niceNorm = 1;
-  else if (normalized <= 2) niceNorm = 2;
-  else if (normalized <= 5) niceNorm = 5;
-  else niceNorm = 10;
-  return niceNorm * magnitude;
+export const DEFAULT_Y_MAX = 4;
+const MAX_Y_TICKS = 5;
+const Y_STEPS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+export interface YScale {
+  max: number;
+  ticks: number[];
+}
+
+// Ось Y всегда 0–4 ч. Расширяется только если значение реально больше 4
+// (например, сумма за неделю), чтобы столбик не обрезался.
+export function getYScale(maxValue: number): YScale {
+  if (maxValue <= DEFAULT_Y_MAX) {
+    return { max: DEFAULT_Y_MAX, ticks: [0, 1, 2, 3, 4] };
+  }
+  const step =
+    Y_STEPS.find((s) => Math.ceil(maxValue / s) <= MAX_Y_TICKS) ?? Y_STEPS[Y_STEPS.length - 1];
+  const count = Math.ceil(maxValue / step);
+  return {
+    max: count * step,
+    ticks: Array.from({ length: count + 1 }, (_, i) => i * step),
+  };
 }
 
 export function formatHours(value: number): string {
