@@ -23,6 +23,12 @@ export const GRANULARITY_LABELS: Record<Granularity, string> = {
   month: "По месяцу",
 };
 
+export const EMPTY_PERIOD_LABELS: Record<Granularity, string> = {
+  day: "за последние 7 дней",
+  week: "за последние 5 недель",
+  month: "за последние 6 месяцев",
+};
+
 function startOfDay(d: Date): Date {
   const date = new Date(d);
   date.setHours(0, 0, 0, 0);
@@ -115,7 +121,21 @@ export function aggregateTotal(entries: EntryWithContext[], buckets: Bucket[]): 
   return result;
 }
 
-export const DEFAULT_Y_MAX = 4;
+// Базовый максимум оси Y (в часах). 0 = без базы: шкала подстраивается под данные.
+export const Y_BASE_MAX: Record<Granularity, number> = {
+  day: 4,
+  week: 20,
+  month: 0,
+};
+
+// На оси Y месяцев числа не показываем — только линии сетки.
+export const SHOW_Y_LABELS: Record<Granularity, boolean> = {
+  day: true,
+  week: true,
+  month: false,
+};
+
+const BASE_TICK_INTERVALS = 4;
 const MAX_Y_TICKS = 5;
 const Y_STEPS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
 
@@ -124,15 +144,20 @@ export interface YScale {
   ticks: number[];
 }
 
-// Ось Y всегда 0–4 ч. Расширяется только если значение реально больше 4
-// (например, сумма за неделю), чтобы столбик не обрезался.
-export function getYScale(maxValue: number): YScale {
-  if (maxValue <= DEFAULT_Y_MAX) {
-    return { max: DEFAULT_Y_MAX, ticks: [0, 1, 2, 3, 4] };
+// Ось Y фиксирована на baseMax (4 ч для дней, 20 ч для недель) и расширяется только
+// если значение реально больше, чтобы столбик не обрезался.
+export function getYScale(maxValue: number, baseMax: number): YScale {
+  if (baseMax > 0 && maxValue <= baseMax) {
+    const step = baseMax / BASE_TICK_INTERVALS;
+    return {
+      max: baseMax,
+      ticks: Array.from({ length: BASE_TICK_INTERVALS + 1 }, (_, i) => i * step),
+    };
   }
+  const top = Math.max(maxValue, 1);
   const step =
-    Y_STEPS.find((s) => Math.ceil(maxValue / s) <= MAX_Y_TICKS) ?? Y_STEPS[Y_STEPS.length - 1];
-  const count = Math.ceil(maxValue / step);
+    Y_STEPS.find((s) => Math.ceil(top / s) <= MAX_Y_TICKS) ?? Y_STEPS[Y_STEPS.length - 1];
+  const count = Math.ceil(top / step);
   return {
     max: count * step,
     ticks: Array.from({ length: count + 1 }, (_, i) => i * step),

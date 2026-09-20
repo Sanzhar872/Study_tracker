@@ -7,7 +7,10 @@ import {
   bucketRange,
   formatHours,
   getBuckets,
+  EMPTY_PERIOD_LABELS,
   getYScale,
+  SHOW_Y_LABELS,
+  Y_BASE_MAX,
   GRANULARITY_LABELS,
   type Granularity,
 } from "../utils/chartBuckets";
@@ -19,7 +22,7 @@ const DEFAULT_WIDTH = 800;
 const COMPACT_BREAKPOINT = 480;
 const HEIGHT = 280;
 const HEIGHT_COMPACT = 220;
-const PAD_L = 34;
+const PAD_L_WITH_LABELS = 34;
 const PAD_R = 12;
 const PAD_T = 16;
 const PAD_B = 30;
@@ -73,7 +76,9 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
   }, [hasSubjects]);
 
   const height = width < COMPACT_BREAKPOINT ? HEIGHT_COMPACT : HEIGHT;
-  const plotW = width - PAD_L - PAD_R;
+  const showYLabels = SHOW_Y_LABELS[granularity];
+  const padL = showYLabels ? PAD_L_WITH_LABELS : PAD_R;
+  const plotW = width - padL - PAD_R;
   const plotH = height - PAD_T - PAD_B;
 
   useEffect(() => {
@@ -117,8 +122,8 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
         for (const v of subjectSeries[id] ?? []) max = Math.max(max, v);
       }
     }
-    return getYScale(max);
-  }, [mode, totalSeries, subjectSeries, selectedIds]);
+    return getYScale(max, Y_BASE_MAX[granularity]);
+  }, [mode, granularity, totalSeries, subjectSeries, selectedIds]);
 
   function toggleSubject(id: number) {
     setSelectedIds((prev) => {
@@ -138,7 +143,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
   const baseY = yForValue(0);
 
   function bandCenterX(i: number): number {
-    return PAD_L + (i + 0.5) * bandW;
+    return padL + (i + 0.5) * bandW;
   }
 
   const blockedBySelection = mode === "subjects" && selectedIds.length === 0;
@@ -210,7 +215,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
             ) : loading ? (
               <div className="chart-empty">Загрузка…</div>
             ) : grandTotal === 0 ? (
-              <div className="chart-empty">Нет записей за этот период</div>
+              <div className="chart-empty">Нет записей {EMPTY_PERIOD_LABELS[granularity]}</div>
             ) : (
               <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} className="chart-svg">
                 {yScale.ticks.map((hour) => {
@@ -218,15 +223,17 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                   return (
                     <g key={hour}>
                       <line
-                        x1={PAD_L}
+                        x1={padL}
                         x2={width - PAD_R}
                         y1={y}
                         y2={y}
                         className="chart-gridline"
                       />
-                      <text x={PAD_L - 8} y={y} className="chart-axis-label" textAnchor="end" dy="0.32em">
-                        {hour}
-                      </text>
+                      {showYLabels && (
+                        <text x={padL - 8} y={y} className="chart-axis-label" textAnchor="end" dy="0.32em">
+                          {hour}
+                        </text>
+                      )}
                     </g>
                   );
                 })}
@@ -269,7 +276,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                           </>
                         )}
                         <rect
-                          x={PAD_L + i * bandW}
+                          x={padL + i * bandW}
                           y={PAD_T}
                           width={bandW}
                           height={plotH}
@@ -318,7 +325,7 @@ export default function HoursChart({ subjects, refreshKey }: Props) {
                     {buckets.map((_, i) => (
                       <rect
                         key={i}
-                        x={PAD_L + i * bandW}
+                        x={padL + i * bandW}
                         y={PAD_T}
                         width={bandW}
                         height={plotH}
