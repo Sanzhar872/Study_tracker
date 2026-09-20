@@ -1393,3 +1393,271 @@ select:focus {
     height: 220px;
   }
 }
+
+/* ---------- Экран «сервер просыпается» ---------- */
+
+@keyframes wakeSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes wakeBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+@keyframes wakeGlow {
+  0%, 100% { opacity: 0.55; transform: scale(0.9); }
+  50% { opacity: 0.95; transform: scale(1.12); }
+}
+
+@keyframes wakeBob {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50% { transform: rotate(4deg) translateY(-2px); }
+}
+
+@keyframes wakeFloatZ {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.6) rotate(-8deg); }
+  20% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(26px, -46px) scale(1.25) rotate(10deg); }
+}
+
+@keyframes wakeDraw {
+  from { stroke-dashoffset: 40; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes wakeShimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(220%); }
+}
+
+@keyframes wakeDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(60px, 40px) scale(1.12); }
+}
+
+.wake-page::before {
+  animation: wakeDrift 14s ease-in-out infinite alternate;
+}
+
+.wake-page::after {
+  animation: wakeDrift 17s ease-in-out infinite alternate-reverse;
+}
+
+.wake-card {
+  width: 420px;
+  text-align: center;
+  padding: 40px 32px 30px;
+}
+
+.wake-scene {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 22px;
+}
+
+.wake-glow {
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--auth-red) 45%, transparent) 0%,
+    color-mix(in srgb, var(--auth-lilac) 45%, transparent) 55%,
+    transparent 75%
+  );
+  filter: blur(14px);
+  animation: wakeGlow 2.8s ease-in-out infinite;
+}
+
+.wake-orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--auth-slate) 35%, transparent);
+  animation: wakeSpin 6s linear infinite;
+  transition: opacity 0.4s ease;
+}
+
+.wake-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.wake-dot-red {
+  color: var(--auth-red);
+  background: var(--auth-red);
+  transform: rotate(0deg) translateY(-70px);
+}
+
+.wake-dot-lilac {
+  color: var(--auth-lilac);
+  background: var(--auth-lilac);
+  transform: rotate(120deg) translateY(-70px);
+}
+
+.wake-dot-slate {
+  color: var(--auth-slate);
+  background: var(--auth-slate);
+  transform: rotate(240deg) translateY(-70px);
+}
+
+.wake-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 82px;
+  height: 82px;
+  margin: -41px 0 0 -41px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--auth-red);
+  background: color-mix(in srgb, #ffffff 80%, transparent);
+  border: 2px solid color-mix(in srgb, var(--auth-red) 35%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--auth-ink) 12%, transparent);
+  animation: wakeBreathe 2.8s ease-in-out infinite;
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
+.wake-book,
+.wake-check {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wake-book {
+  animation: wakeBob 3.2s ease-in-out infinite;
+}
+
+.wake-check {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.wake-check path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 0;
+}
+
+.wake-z {
+  position: absolute;
+  top: 22px;
+  right: 18px;
+  font-size: 20px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--auth-slate);
+  opacity: 0;
+  animation: wakeFloatZ 3.6s ease-out infinite;
+}
+
+.wake-z-2 { animation-delay: 1.2s; font-size: 16px; }
+.wake-z-3 { animation-delay: 2.4s; font-size: 24px; }
+
+.wake-scene.is-done .wake-orbit,
+.wake-scene.is-done .wake-z,
+.wake-scene.is-done .wake-book {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.wake-scene.is-done .wake-core {
+  color: #ffffff;
+  background: #2e8b57;
+  border-color: #2e8b57;
+}
+
+.wake-scene.is-done .wake-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.wake-scene.is-done .wake-check path {
+  animation: wakeDraw 0.5s ease-out 0.1s both;
+}
+
+.wake-title {
+  font-size: 22px;
+}
+
+.wake-message {
+  position: relative;
+  min-height: 20px;
+  margin: 6px 0 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--auth-slate);
+  animation: fadeSlideUp 0.35s ease both;
+}
+
+.wake-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--auth-slate) 16%, transparent);
+}
+
+.wake-bar-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--auth-lilac), var(--auth-red));
+  transition: width 0.7s ease;
+}
+
+.wake-bar-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: wakeShimmer 1.6s ease-in-out infinite;
+}
+
+.wake-hint {
+  position: relative;
+  margin: 18px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.wake-timer {
+  position: relative;
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--text-muted) 75%, transparent);
+}
+
+@media (max-width: 480px) {
+  .wake-card {
+    padding: 32px 22px 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wake-page::before,
+  .wake-page::after,
+  .wake-page *,
+  .wake-page *::after {
+    animation: none !important;
+  }
+
+  .wake-z {
+    display: none;
+  }
+}

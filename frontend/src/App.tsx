@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import WeekPage from "./pages/WeekPage";
 import ManagePage from "./pages/ManagePage";
 import AuthPage from "./pages/AuthPage";
+import ServerGate from "./components/ServerGate";
 import { api, clearToken, getToken, setUnauthorizedHandler } from "./api/client";
 import type { User } from "./types";
 
 type Page = "week" | "manage";
 
-export default function App() {
+function AppContent() {
   const [page, setPage] = useState<Page>("week");
   const [user, setUser] = useState<User | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -64,5 +65,13 @@ export default function App() {
       </nav>
       {page === "week" ? <WeekPage /> : <ManagePage />}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ServerGate>
+      <AppContent />
+    </ServerGate>
   );
 }

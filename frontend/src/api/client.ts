@@ -27,6 +27,26 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+/**
+ * Одна попытка достучаться до бэкенда. Холодный старт на бесплатном хостинге
+ * отвечает долго, ошибкой без CORS-заголовков или обрывом — всё это = false.
+ */
+export async function pingServer(timeoutMs = 10000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${BASE_URL}/health`, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 let onUnauthorized: (() => void) | null = null;
 
 export function setUnauthorizedHandler(handler: () => void): void {
