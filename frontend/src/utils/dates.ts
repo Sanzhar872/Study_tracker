@@ -33,3 +33,7 @@ export function formatWeekRange(weekStart: Date): string {
   const weekEnd = addDays(weekStart, 6);
   return `${weekStart.toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} — ${weekEnd.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}`;
 }
+
+export function formatFullDay(d: Date): string {
+  return d.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+}

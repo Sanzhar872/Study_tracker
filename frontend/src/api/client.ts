@@ -7,6 +7,9 @@ import type {
   Subject,
   SubjectCreate,
   SubjectUpdate,
+  Task,
+  TaskCreate,
+  TaskUpdate,
   Topic,
   TopicCreate,
   TopicUpdate,
@@ -117,5 +120,14 @@ export const api = {
     update: (id: number, data: EntryUpdate) =>
       request<Entry>(`/entries/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     remove: (id: number) => request<void>(`/entries/${id}`, { method: "DELETE" }),
+  },
+  tasks: {
+    listRange: (start: string, end: string) =>
+      request<Task[]>(`/tasks?start=${start}&end=${end}`),
+    create: (data: TaskCreate) =>
+      request<Task>("/tasks", { method: "POST", body: JSON.stringify(data) }),
+    update: (id: number, data: TaskUpdate) =>
+      request<Task>(`/tasks/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    remove: (id: number) => request<void>(`/tasks/${id}`, { method: "DELETE" }),
   },
 };

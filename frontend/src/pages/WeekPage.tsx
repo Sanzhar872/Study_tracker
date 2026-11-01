@@ -1,14 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../api/client";
 import type { EntryWithContext, Subject, Topic } from "../types";
-import { addDays, startOfWeek, toISODate, formatWeekRange } from "../utils/dates";
+import { toISODate } from "../utils/dates";
+import { usePeriodNav } from "../hooks/usePeriodNav";
+import PeriodHeader from "../components/PeriodHeader";
 import WeekView from "../components/WeekView";
 import AddEntryModal from "../components/AddEntryModal";
 import HoursChart from "../components/HoursChart";
 import StudyTimer from "../components/StudyTimer";
 
 export default function WeekPage() {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const nav = usePeriodNav();
+  const { weekStart, weekEnd } = nav;
   const [entries, setEntries] = useState<EntryWithContext[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -20,15 +23,13 @@ export default function WeekPage() {
     | null
   >(null);
 
-  const weekEnd = addDays(weekStart, 6);
-
   const loadEntries = useCallback(() => {
     setLoading(true);
     api.entries
       .listRange(toISODate(weekStart), toISODate(weekEnd))
       .then(setEntries)
       .finally(() => setLoading(false));
-  }, [weekStart]);
+  }, [weekStart, weekEnd]);
 
   useEffect(() => {
     loadEntries();
@@ -49,23 +50,16 @@ export default function WeekPage() {
     <div>
       <StudyTimer subjects={subjects} topics={topics} onSaved={handleSaved} />
 
-      <div className="week-header">
-        <h2>{formatWeekRange(weekStart)}</h2>
-        <div className="week-nav-btns">
-          <button className="icon-btn" onClick={() => setWeekStart((d) => addDays(d, -7))}>
-            ←
-          </button>
-          <button className="icon-btn" onClick={() => setWeekStart(startOfWeek(new Date()))}>
-            •
-          </button>
-          <button className="icon-btn" onClick={() => setWeekStart((d) => addDays(d, 7))}>
-            →
-          </button>
-        </div>
-      </div>
+      <PeriodHeader
+        title={nav.title}
+        isMobile={nav.isMobile}
+        onPrev={nav.prev}
+        onToday={nav.today}
+        onNext={nav.next}
+      />
 
       <WeekView
-        weekStart={weekStart}
+        days={nav.days}
         entries={entries}
         loading={loading}
         onAddClick={(date) => setModalState({ mode: "create", date })}

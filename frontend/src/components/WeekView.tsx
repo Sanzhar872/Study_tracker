@@ -1,21 +1,20 @@
 import type { EntryWithContext } from "../types";
-import { getWeekDays, toISODate } from "../utils/dates";
+import { toISODate } from "../utils/dates";
 import DayColumn from "./DayColumn";
 
 interface Props {
-  weekStart: Date;
+  days: Date[];
   entries: EntryWithContext[];
   loading: boolean;
   onAddClick: (date: string) => void;
   onEntryClick: (entry: EntryWithContext) => void;
 }
 
-export default function WeekView({ weekStart, entries, loading, onAddClick, onEntryClick }: Props) {
-  const days = getWeekDays(weekStart);
+export default function WeekView({ days, entries, loading, onAddClick, onEntryClick }: Props) {
   const todayISO = toISODate(new Date());
 
   return (
-    <div className="week-grid">
+    <div className={`week-grid ${days.length === 1 ? "week-grid--single" : ""}`}>
       {days.map((day) => {
         const dayISO = toISODate(day);
         const dayEntries = entries.filter((e) => e.date === dayISO);

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import WeekPage from "./pages/WeekPage";
 import ManagePage from "./pages/ManagePage";
+import PlannerPage from "./pages/PlannerPage";
 import AuthPage from "./pages/AuthPage";
 import ServerGate from "./components/ServerGate";
 import { api, clearToken, getToken, setUnauthorizedHandler } from "./api/client";
 import type { User } from "./types";
 
-type Page = "week" | "manage";
+type Page = "week" | "planner" | "manage";
 
 function AppContent() {
   const [page, setPage] = useState<Page>("week");
@@ -52,6 +53,12 @@ function AppContent() {
           Неделя
         </button>
         <button
+          className={`nav-btn ${page === "planner" ? "active" : ""}`}
+          onClick={() => setPage("planner")}
+        >
+          Планировщик
+        </button>
+        <button
           className={`nav-btn ${page === "manage" ? "active" : ""}`}
           onClick={() => setPage("manage")}
         >
@@ -63,7 +70,9 @@ function AppContent() {
           Выйти
         </button>
       </nav>
-      {page === "week" ? <WeekPage /> : <ManagePage />}
+      {page === "week" && <WeekPage />}
+      {page === "planner" && <PlannerPage />}
+      {page === "manage" && <ManagePage />}
     </div>
   );
 }

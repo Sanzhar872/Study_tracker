@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import auth, entries, subjects, topics
+from app.routers import auth, entries, subjects, tasks, topics
 
 app = FastAPI(title="Study Tracker API")
 
@@ -18,6 +18,7 @@ app.include_router(auth.router)
 app.include_router(subjects.router)
 app.include_router(topics.router)
 app.include_router(entries.router)
+app.include_router(tasks.router)
 
 
 @app.get("/health")

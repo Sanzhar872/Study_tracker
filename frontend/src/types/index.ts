@@ -43,3 +43,14 @@ export type TopicUpdate = Partial<Omit<Topic, "id">>;
 
 export type EntryCreate = Omit<Entry, "id" | "created_at" | "description">;
 export type EntryUpdate = Partial<EntryCreate>;
+
+export interface Task {
+  id: number;
+  date: string;
+  text: string;
+  done: boolean;
+  created_at: string;
+}
+
+export type TaskCreate = Pick<Task, "date" | "text">;
+export type TaskUpdate = Partial<Pick<Task, "date" | "text" | "done">>;
