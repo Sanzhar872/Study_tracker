@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import type { EntryWithContext, Subject, Topic } from "../types";
+import TopicSelect from "./TopicSelect";
 
 type ModalState =
   | { mode: "create"; date: string }
@@ -12,9 +13,17 @@ interface Props {
   topics: Topic[];
   onClose: () => void;
   onSaved: () => void;
+  onTopicCreated: (topic: Topic) => void;
 }
 
-export default function AddEntryModal({ state, subjects, topics, onClose, onSaved }: Props) {
+export default function AddEntryModal({
+  state,
+  subjects,
+  topics,
+  onClose,
+  onSaved,
+  onTopicCreated,
+}: Props) {
   const isEdit = state.mode === "edit";
   const initialEntry = isEdit ? state.entry : null;
 
@@ -33,8 +42,6 @@ export default function AddEntryModal({ state, subjects, topics, onClose, onSave
   );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const filteredTopics = topics.filter((t) => t.subject_id === subjectId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -117,21 +124,16 @@ export default function AddEntryModal({ state, subjects, topics, onClose, onSave
 
           <div className="form-field">
             <label>Тема</label>
-            <select
+            <TopicSelect
+              subjectId={subjectId}
+              topics={topics}
               value={topicId}
-              onChange={(e) => setTopicId(e.target.value ? Number(e.target.value) : "")}
+              onChange={setTopicId}
+              onTopicCreated={onTopicCreated}
+              placeholder="Выберите тему"
+              disabledPlaceholder="Сначала выберите предмет"
               required
-              disabled={!subjectId}
-            >
-              <option value="" disabled>
-                {subjectId ? "Выберите тему" : "Сначала выберите предмет"}
-              </option>
-              {filteredTopics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="form-field">

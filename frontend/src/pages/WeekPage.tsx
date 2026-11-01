@@ -40,6 +40,10 @@ export default function WeekPage() {
     api.topics.list().then(setTopics);
   }, []);
 
+  function handleTopicCreated(topic: Topic) {
+    setTopics((prev) => [...prev, topic]);
+  }
+
   function handleSaved() {
     setModalState(null);
     loadEntries();
@@ -48,7 +52,12 @@ export default function WeekPage() {
 
   return (
     <div>
-      <StudyTimer subjects={subjects} topics={topics} onSaved={handleSaved} />
+      <StudyTimer
+        subjects={subjects}
+        topics={topics}
+        onSaved={handleSaved}
+        onTopicCreated={handleTopicCreated}
+      />
 
       <PeriodHeader
         title={nav.title}
@@ -73,6 +82,7 @@ export default function WeekPage() {
           topics={topics}
           onClose={() => setModalState(null)}
           onSaved={handleSaved}
+          onTopicCreated={handleTopicCreated}
         />
       )}
 

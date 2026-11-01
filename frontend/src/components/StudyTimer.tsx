@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { Subject, Topic } from "../types";
 import { formatElapsed } from "../utils/duration";
 import { toISODate } from "../utils/dates";
+import TopicSelect from "./TopicSelect";
 
 const STORAGE_KEY = "study_tracker_timer";
 
@@ -52,9 +53,10 @@ interface Props {
   subjects: Subject[];
   topics: Topic[];
   onSaved: () => void;
+  onTopicCreated: (topic: Topic) => void;
 }
 
-export default function StudyTimer({ subjects, topics, onSaved }: Props) {
+export default function StudyTimer({ subjects, topics, onSaved, onTopicCreated }: Props) {
   const [subjectId, setSubjectId] = useState<number | "">("");
   const [topicId, setTopicId] = useState<number | "">("");
   const [status, setStatus] = useState<Status | "idle">("idle");
@@ -81,7 +83,6 @@ export default function StudyTimer({ subjects, topics, onSaved }: Props) {
     return () => clearInterval(id);
   }, [status]);
 
-  const filteredTopics = topics.filter((t) => t.subject_id === subjectId);
   const running = status === "running";
   const paused = status === "paused";
   const active = running || paused;
@@ -189,20 +190,15 @@ export default function StudyTimer({ subjects, topics, onSaved }: Props) {
                 </option>
               ))}
             </select>
-            <select
+            <TopicSelect
+              subjectId={subjectId}
+              topics={topics}
               value={topicId}
-              onChange={(e) => setTopicId(e.target.value ? Number(e.target.value) : "")}
-              disabled={!subjectId}
-            >
-              <option value="" disabled>
-                {subjectId ? "Тема" : "Сначала предмет"}
-              </option>
-              {filteredTopics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+              onChange={setTopicId}
+              onTopicCreated={onTopicCreated}
+              placeholder="Тема"
+              disabledPlaceholder="Сначала предмет"
+            />
           </div>
           <button className="btn btn-primary timer-start-btn" onClick={handleStart}>
             ▶ Старт
